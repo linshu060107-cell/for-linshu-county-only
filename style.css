@@ -1074,6 +1074,30 @@ body {
   cursor: pointer;
   color: var(--accent-color);
 }
+#sticker-search-container {
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+#sticker-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: rgba(255, 255, 255, 0.8);
+  color: var(--text-color);
+  outline: none;
+  transition: all 0.2s ease;
+}
+#sticker-search-input:focus {
+  border-color: var(--accent-color);
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb, 0, 122, 255), 0.1);
+}
+#sticker-search-input::placeholder {
+  color: var(--text-secondary);
+}
 #sticker-grid,
 #exclusive-sticker-grid,
 #common-sticker-grid {
@@ -1425,6 +1449,74 @@ body {
   word-break: break-word; /* 核心修正: 强制长单词或URL换行，防止撑破气泡 */
 }
 /* ▲▲▲ 替换结束 ▲▲▲ */
+
+/* 翻译气泡样式支持 - 确保details/summary在气泡内正确显示，不增加额外空间 */
+.message-bubble .content details {
+  margin: 0 !important;
+  padding: 0 !important; /* 完全移除padding，因为content已经有padding了 */
+  display: block; /* 保持block，但确保不增加空间 */
+  background: transparent;
+  border-radius: 0; /* 移除圆角，避免视觉上的额外空间 */
+  transition: background-color 0.2s ease;
+  width: 100%; /* 确保不会超出content宽度 */
+  box-sizing: border-box; /* 确保padding计算正确 */
+  vertical-align: baseline; /* 确保垂直对齐 */
+  min-height: 0; /* 确保最小高度为0 */
+  max-height: none; /* 不限制最大高度 */
+}
+
+.message-bubble .content details:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+.message-bubble .content details summary {
+  display: block;
+  list-style: none;
+  margin: 0 !important;
+  padding: 0 !important; /* 完全移除padding，保持与普通文本一致 */
+  outline: none;
+  cursor: pointer;
+  line-height: 1.5; /* 与content的line-height保持一致 */
+  user-select: none;
+  -webkit-user-select: none;
+  font-size: inherit; /* 继承父元素字体大小 */
+  vertical-align: baseline; /* 确保垂直对齐 */
+}
+
+.message-bubble .content details summary::-webkit-details-marker {
+  display: none;
+}
+
+.message-bubble .content details summary::marker {
+  display: none;
+}
+
+.message-bubble .content details[open] summary {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.message-bubble .content details > div {
+  margin: 0 !important; /* 完全移除所有margin */
+  padding: 0 !important; /* 完全移除所有padding */
+  font-size: 0.85em;
+  opacity: 0.8;
+  animation: fadeIn 0.2s ease;
+  line-height: 1.3; /* 进一步减小行高，让翻译文本更紧凑 */
+  display: block;
+  margin-top: 2px; /* 只保留最小的间距，让翻译文本与原文有轻微分隔 */
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 0.8;
+    transform: translateY(0);
+  }
+}
 
 /* === 气泡主题样式 === */
 .message-bubble.user .content {
