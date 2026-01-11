@@ -14018,27 +14018,51 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
             <!-- 任务分组将由JS动态生成 -->
           </div>
 
-          <div id="task-splitter-completion-view" style="display: none; text-align: center; padding: 40px;">
-            <div style="font-size: 48px; margin-bottom: 20px;">🎉</div>
-            <div id="task-splitter-end-message" style="
-              font-size: 18px;
-              color: #333;
-              line-height: 1.6;
+          <div id="task-splitter-completion-view" style="display: none; text-align: center; padding: 20px 40px; flex-direction: column; justify-content: center; align-items: center; min-height: 100%;">
+            <div id="task-splitter-reward-container" style="
               margin-bottom: 20px;
-            "></div>
-            <button 
-              id="task-splitter-new-goal-btn" 
-              style="
-                margin-top: 20px;
-                padding: 12px 30px;
+              width: 100%;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+            ">
+              <div id="task-splitter-reward-visualization" style="
+                padding: 20px;
+                min-height: 200px;
+                margin-bottom: 20px;
+                width: 100%;
+                max-width: 500px;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                margin-left: auto;
+                margin-right: auto;
+              "></div>
+              <div id="task-splitter-reward-message" style="
                 font-size: 16px;
-                background: #4CAF50;
-                color: white;
-                border: none;
-                border-radius: 25px;
-                cursor: pointer;
-              "
-            >+ 新增目标</button>
+                color: #333;
+                line-height: 1.6;
+                padding: 0;
+                width: 100%;
+                max-width: 500px;
+              "></div>
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center; margin-top: 30px;">
+              <button 
+                id="task-splitter-new-goal-btn" 
+                style="
+                  padding: 12px 30px;
+                  font-size: 16px;
+                  background: #4CAF50;
+                  color: white;
+                  border: none;
+                  border-radius: 25px;
+                  cursor: pointer;
+                  display: block;
+                  margin: 0 auto;
+                "
+              >完成</button>
+            </div>
           </div>
         </div>
       </div>
@@ -14060,6 +14084,42 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
         z-index: 100;
         display: none;
       ">遇到困难</button>
+      
+      <!-- 取消任务按钮 -->
+      <button id="task-splitter-cancel-task-btn" style="
+        position: fixed;
+        bottom: 150px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+        color: white;
+        border: none;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        display: none;
+      ">取消任务</button>
+      
+      <!-- 切换角色按钮 -->
+      <button id="task-splitter-switch-char-btn" style="
+        position: fixed;
+        bottom: 220px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        border: none;
+        font-size: 12px;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 100;
+        display: none;
+      ">切换角色</button>
     </div>
 
     <!-- 拆分机app - 背景图片设置模态框 -->
@@ -14094,7 +14154,7 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
     <div id="task-splitter-history-modal" class="modal">
       <div class="modal-content" style="width: 90%; max-width: 600px; max-height: 80%;">
         <div class="modal-header">
-          <span>完成目标历史</span>
+          <span>奖励柜</span>
           <span id="task-splitter-history-close-btn" style="cursor: pointer; font-size: 24px;">×</span>
         </div>
         <div class="modal-body" id="task-splitter-history-list" style="padding: 15px; overflow-y: auto; max-height: calc(80vh - 100px);">

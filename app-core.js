@@ -7215,6 +7215,88 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isSelectionMode) toggleMessageSelection(msg.timestamp);
       });
       return wrapper;
+    } else if (msg.type === "task_reward") {
+      // 任务奖励消息
+      const wrapper = document.createElement("div");
+      wrapper.className = "message-wrapper ai";
+      const bubble = document.createElement("div");
+      bubble.className = "message-bubble ai";
+      bubble.dataset.timestamp = msg.timestamp;
+      
+      const payload = msg.payload || {};
+      const rewardText = payload.rewardText || msg.content || '恭喜你完成了目标！';
+      const rewardVisualization = payload.rewardVisualization || '';
+      
+      let visualizationHTML = '';
+      if (rewardVisualization) {
+        try {
+          let vizHTML = rewardVisualization;
+          if (rewardVisualization.includes('<style>')) {
+            const styleMatch = rewardVisualization.match(/<style>([\s\S]*?)<\/style>/);
+            if (styleMatch) {
+              const styleContent = styleMatch[1];
+              const styleId = `task-reward-style-${msg.timestamp}`;
+              if (!document.getElementById(styleId)) {
+                const styleEl = document.createElement('style');
+                styleEl.id = styleId;
+                styleEl.textContent = styleContent;
+                document.head.appendChild(styleEl);
+              }
+            }
+            vizHTML = rewardVisualization.replace(/<style>[\s\S]*?<\/style>/g, '').trim();
+          }
+          visualizationHTML = `<div class="reward-visualization" style="margin: 10px 0; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; min-height: 100px; cursor: pointer;">${vizHTML}</div>`;
+        } catch (error) {
+          console.error('渲染奖励可视化失败:', error);
+          visualizationHTML = '<div class="reward-visualization" style="margin: 10px 0; padding: 15px; text-align: center; font-size: 48px; cursor: pointer;">🎁</div>';
+        }
+      } else {
+        visualizationHTML = '<div class="reward-visualization" style="margin: 10px 0; padding: 15px; text-align: center; font-size: 48px; cursor: pointer;">🎁</div>';
+      }
+      
+      // 文字描述（默认隐藏）
+      const textHTML = `<div class="reward-text" style="display: none; margin-top: 10px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 8px; line-height: 1.6; cursor: pointer;">${rewardText.replace(/\n/g, "<br>")}</div>`;
+      
+      bubble.innerHTML = `
+        <img src="${chat.settings.aiAvatar}" class="avatar">
+        <div class="content">
+          ${visualizationHTML}
+          ${textHTML}
+        </div>
+      `;
+      
+      // 添加点击切换功能
+      const vizEl = bubble.querySelector('.reward-visualization');
+      const textEl = bubble.querySelector('.reward-text');
+      if (vizEl && textEl) {
+        let showingViz = true;
+        bubble.addEventListener('click', (e) => {
+          // 只响应点击奖励区域，不响应点击头像
+          if (e.target.closest('.reward-visualization') || e.target.closest('.reward-text')) {
+            e.stopPropagation();
+            if (showingViz) {
+              vizEl.style.display = 'none';
+              textEl.style.display = 'block';
+              showingViz = false;
+            } else {
+              vizEl.style.display = 'block';
+              textEl.style.display = 'none';
+              showingViz = true;
+            }
+          }
+        });
+      }
+      
+      wrapper.appendChild(bubble);
+      addLongPressListener(wrapper, () => showMessageActions(msg.timestamp));
+      wrapper.addEventListener("click", (e) => {
+        // 如果点击的是奖励区域，不触发选择模式
+        if (e.target.closest('.reward-visualization') || e.target.closest('.reward-text')) {
+          return;
+        }
+        if (isSelectionMode) toggleMessageSelection(msg.timestamp);
+      });
+      return wrapper;
     }
 
     const isUser = msg.role === "user";
