@@ -13905,6 +13905,10 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
         overflow-y: auto;
         padding: 20px;
         background: #fff;
+        position: relative; 
+  margin-top: -60px;   /* 关键：往上提 60px，数值可根据需要调整 */
+  border-top-left-radius: 30px;  /* 可选：加圆角让过渡更自然 */
+  border-top-right-radius: 30px; /* 可选：加圆角 */
       ">
         <!-- 初始界面：角色头像和输入 -->
         <div id="task-splitter-initial-view" style="
