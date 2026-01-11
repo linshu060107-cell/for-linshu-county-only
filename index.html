@@ -13906,9 +13906,7 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
         padding: 20px;
         background: #fff;
         position: relative; 
-  margin-top: -60px;   /* 关键：往上提 60px，数值可根据需要调整 */
-  border-top-left-radius: 30px;  /* 可选：加圆角让过渡更自然 */
-  border-top-right-radius: 30px; /* 可选：加圆角 */
+  
       ">
         <!-- 初始界面：角色头像和输入 -->
         <div id="task-splitter-initial-view" style="
@@ -13930,6 +13928,12 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             aspect-ratio: 1 / 1;
             flex-shrink: 0;
+            position: absolute;       /* 绝对定位 */
+    top: 60vh;                /* 刚好在背景图底部 */
+    left: 50%;
+    transform: translate(-50%, -50%); /* 向上偏移一半，实现垂直居中在分界线上 */
+    z-index: 100;             /* 确保它在最顶层 */
+    background: white;        /* 加上背景色防止透明 */
           ">
             <img id="task-splitter-char-avatar" src="" alt="角色头像" style="
               width: 100%;
