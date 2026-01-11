@@ -1181,11 +1181,12 @@
               id="world-book-priority-select"
               class="moe-input"
             >
+              <option value="breakLimit">破限（最高优先级，必定第一个阅读，比高优先级还高）</option>
               <option value="high">高（最高优先级，最先读取）</option>
               <option value="medium">中（比人设高，在读取人设前读取）</option>
               <option value="low">低（最低优先级，在读取人设后读取）</option>
             </select>
-            <small style="color: #888; font-size: 12px; display: block; margin-top: 4px;">
+            <small id="world-book-priority-hint" style="color: #888; font-size: 12px; display: block; margin-top: 4px;">
               控制世界书的读取顺序。高优先级最先读取，中优先级在读取人设前读取，低优先级在读取人设后读取。
             </small>
           </div>
@@ -13905,45 +13906,36 @@ lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer
         overflow-y: auto;
         padding: 20px;
         background: #fff;
-        position: relative; 
-  
       ">
         <!-- 初始界面：角色头像和输入 -->
         <div id="task-splitter-initial-view" style="
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: center;
-          height: 100%;
+          justify-content: flex-start;
+          min-height: 100%;
           text-align: center;
+          padding: 20px 0;
         ">
           <div id="task-splitter-char-avatar-container" style="
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    /* 1. 把定位改回 relative，它就不会乱跑了 */
-    position: relative; 
-    /* 2. 使用负 margin 向上提 60px (自身高度的一半) */
-    margin-top: -80px; 
-    margin-bottom: 20px;
-    margin-left: auto;
-    margin-right: auto;
-    /* 3. 必须加 z-index，让它比背景图更“高” */
-    z-index: 999; 
-    background: white;
-    border: 3px solid #4CAF50;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    overflow: hidden;
-    cursor: pointer;
-    flex-shrink: 0;
-">
-    <img id="task-splitter-char-avatar" src="" alt="角色头像" style="
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    ">
-</div>
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin-bottom: 20px;
+            cursor: pointer;
+            border: 3px solid #4CAF50;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            aspect-ratio: 1 / 1;
+            flex-shrink: 0;
+          ">
+            <img id="task-splitter-char-avatar" src="" alt="角色头像" style="
+              width: 100%;
+              height: 100%;
+              object-fit: cover;
+              display: block;
+            ">
+          </div>
           <p id="task-splitter-greeting" style="
             font-size: 18px;
             color: #333;

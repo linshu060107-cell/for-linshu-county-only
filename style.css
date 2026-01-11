@@ -652,6 +652,72 @@ body {
   flex-direction: row-reverse; /* 时间戳、气泡、头像，从右到左排列 */
 }
 
+/* HTML消息样式 - 不使用气泡包裹，居中显示 */
+.message-wrapper.html-message-wrapper {
+  width: 100%;
+  max-width: 100%;
+  align-self: center;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.html-message-content {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.html-message-content .html-document-container {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent !important;
+}
+
+.html-message-content .html-document-container iframe {
+  display: block;
+  margin: 0 auto;
+  background: transparent !important;
+}
+
+.html-message-wrapper .timestamp {
+  margin-top: 5px;
+  text-align: center;
+}
+
+.reward-message-wrapper .timestamp {
+  margin-top: 5px;
+  text-align: center;
+}
+
+/* 奖励消息样式 - 不使用气泡包裹，居中显示 */
+.message-wrapper.reward-message-wrapper {
+  width: 100%;
+  max-width: 100%;
+  align-self: center;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.reward-message-content {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* 4. 气泡和头像的直接容器 (保持不变) */
 .message-bubble {
   display: flex;
@@ -733,14 +799,12 @@ body {
   border-radius: 20px;
   background-color: var(--secondary-bg);
   font-size: 16px;
-
-  /* ▼▼▼ 核心修改：固定高度 ▼▼▼ */
-  height: 40px;           /* 这里填你喜欢的固定高度，比如 40px */
-  box-sizing: border-box; /* 保证 padding 不会额外撑大这 40px */
-  overflow-y: auto;       /* 超过一行时，允许上下滚动 */
-  resize: none;           /* 禁止用户手动拖动右下角缩放 */
+  max-height: 100px;
+  resize: none;
+  min-height: 40px; /* 设置最小高度，防止初始状态和输入第一个字符时高度不一致 */
+  height: 40px; /* 设置初始高度，确保空状态时高度固定 */
+  box-sizing: border-box; /* 确保 padding 被包含在高度计算中 */
 }
-
 .action-button {
   border: none;
   color: white;
