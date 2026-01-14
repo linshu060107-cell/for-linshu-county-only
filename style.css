@@ -799,14 +799,12 @@ body {
   border-radius: 20px;
   background-color: var(--secondary-bg);
   font-size: 16px;
-
-  /* ▼▼▼ 核心修改：固定高度 ▼▼▼ */
-  height: 40px;           /* 这里填你喜欢的固定高度，比如 40px */
-  box-sizing: border-box; /* 保证 padding 不会额外撑大这 40px */
-  overflow-y: auto;       /* 超过一行时，允许上下滚动 */
-  resize: none;           /* 禁止用户手动拖动右下角缩放 */
+  max-height: 100px;
+  resize: none;
+  min-height: 40px; /* 设置最小高度，防止初始状态和输入第一个字符时高度不一致 */
+  height: 40px; /* 设置初始高度，确保空状态时高度固定 */
+  box-sizing: border-box; /* 确保 padding 被包含在高度计算中 */
 }
-
 .action-button {
   border: none;
   color: white;
@@ -1467,6 +1465,50 @@ body {
 }
 .message-bubble.user .voice-duration {
   color: #3e6224;
+}
+
+/* 角色音频消息样式 */
+.character-audio-body {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding: 8px 12px;
+  min-width: 80px;
+  max-width: 200px;
+}
+
+.character-audio-body.playing .voice-waveform div {
+  animation: wave-active 0.8s ease-in-out infinite;
+}
+
+@keyframes wave-active {
+  0%,
+  100% {
+    height: 4px;
+  }
+  50% {
+    height: 16px;
+  }
+}
+
+.character-audio-duration {
+  font-size: var(--chat-font-size, 13px);
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-left: 10px;
+}
+
+.audio-description {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  word-break: break-word;
+}
+
+.message-bubble.is-character-audio {
+  /* 复用语音消息的样式 */
 }
 
 /* ▼▼▼ 用这块代码替换掉你原来的 .message-bubble .content 样式 ▼▼▼ */
