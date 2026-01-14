@@ -1677,17 +1677,158 @@ function renderMoodJar(year, month, diaryData) {
   let jarHtml = `
         <div class="ls-mood-jar-wrapper">
             <h3>本月心情罐子</h3>
-            <div class="ls-mood-jar">
+            <div class="ls-mood-jar-container">
+                <div class="ls-mood-jar-glass">
+                    <div class="ls-mood-jar-lid"></div>
+                    <div class="ls-mood-jar-content" id="ls-mood-jar-content-${year}-${month}">
     `;
 
   if (allEmojis.length > 0) {
-    jarHtml += allEmojis.map(emoji => `<span class="mood-emoji-item">${emoji}</span>`).join('');
+    // 为每个emoji创建带唯一ID的元素
+    jarHtml += allEmojis.map((emoji, index) => 
+      `<span class="mood-emoji-item" data-emoji-index="${index}">${emoji}</span>`
+    ).join('');
   } else {
-    jarHtml += '<p style="color: var(--text-secondary); font-size: 13px;">这个月还没有记录心情哦</p>';
+    jarHtml += '<p class="ls-mood-jar-empty">这个月还没有记录心情哦</p>';
   }
 
-  jarHtml += '</div></div>';
+  jarHtml += `
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+  
+  // 在下一帧执行布局算法
+  setTimeout(() => {
+    layoutEmojisInJar(`ls-mood-jar-content-${year}-${month}`, allEmojis.length);
+  }, 50);
+  
   return jarHtml;
+}
+
+/**
+ * 在罐子中布局emoji，实现推挤但不重叠的效果
+ * @param {string} containerId - 容器ID
+ * @param {number} emojiCount - emoji数量
+ */
+function layoutEmojisInJar(containerId, emojiCount) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  
+  const emojiItems = container.querySelectorAll('.mood-emoji-item');
+  if (emojiItems.length === 0) return;
+  
+  const containerRect = container.getBoundingClientRect();
+  const containerWidth = containerRect.width;
+  const containerHeight = containerRect.height;
+  
+  // emoji的尺寸
+  const emojiSize = 28;
+  const radius = emojiSize / 2;
+  const minDistance = emojiSize * 0.85; // 最小距离，确保不重叠但紧密推挤
+  
+  // 使用改进的圆形打包算法
+  const positions = [];
+  
+  emojiItems.forEach((item, index) => {
+    let x, y;
+    
+      if (index === 0) {
+        // 第一个emoji放在底部中心
+        x = containerWidth / 2;
+        y = containerHeight - radius - 12;
+    } else {
+      // 找到最佳位置：尝试在已有emoji周围放置
+      let bestPosition = null;
+      let bestScore = Infinity;
+      
+      // 尝试多个候选位置
+      for (let attempt = 0; attempt < 50; attempt++) {
+        // 随机选择一个已有的emoji作为参考点
+        const refIndex = Math.floor(Math.random() * positions.length);
+        const refPos = positions[refIndex];
+        
+        // 在参考点周围生成候选位置
+        const angle = (Math.PI * 2 * attempt) / 50; // 均匀分布角度
+        const distance = minDistance + (Math.random() * 5); // 稍微随机化距离
+        let candidateX = refPos.x + Math.cos(angle) * distance;
+        let candidateY = refPos.y + Math.sin(angle) * distance;
+        
+        // 确保在容器内（方形圆角罐子）
+        candidateX = Math.max(radius + 8, Math.min(containerWidth - radius - 8, candidateX));
+        candidateY = Math.max(radius + 8, Math.min(containerHeight - radius - 8, candidateY));
+        
+        // 检查是否与已有位置重叠
+        let overlaps = false;
+        let minDistToOthers = Infinity;
+        
+        for (const pos of positions) {
+          const dx = candidateX - pos.x;
+          const dy = candidateY - pos.y;
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          
+          if (distance < minDistance) {
+            overlaps = true;
+            break;
+          }
+          
+          minDistToOthers = Math.min(minDistToOthers, distance);
+        }
+        
+        if (!overlaps) {
+          // 计算分数：优先选择靠近底部且距离其他emoji适中的位置
+          const distanceFromBottom = containerHeight - candidateY;
+          const distanceFromCenter = Math.abs(candidateX - containerWidth / 2);
+          const score = distanceFromBottom * 0.3 + distanceFromCenter * 0.2 - minDistToOthers * 0.5;
+          
+          if (score < bestScore) {
+            bestScore = score;
+            bestPosition = { x: candidateX, y: candidateY };
+          }
+        }
+      }
+      
+      // 如果找到了合适位置，使用它；否则使用网格布局作为后备
+      if (bestPosition) {
+        x = bestPosition.x;
+        y = bestPosition.y;
+      } else {
+        // 后备：使用简单的网格布局
+        const cols = Math.floor(containerWidth / emojiSize);
+        const col = index % cols;
+        const row = Math.floor(index / cols);
+        x = col * emojiSize + radius + 10;
+        y = containerHeight - (row + 1) * emojiSize - radius - 15;
+      }
+    }
+    
+    positions.push({ x, y });
+    
+    // 设置位置，添加掉落动画
+    item.style.position = 'absolute';
+    item.style.left = `${x - radius}px`;
+    item.style.top = `${y - radius}px`;
+    item.style.opacity = '0';
+    item.style.transform = 'translateY(-30px) scale(0.3) rotate(-10deg)';
+    item.style.transition = `all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) ${index * 0.08}s`;
+    
+    // 触发动画
+    setTimeout(() => {
+      item.style.opacity = '1';
+      item.style.transform = 'translateY(0) scale(1) rotate(0deg)';
+    }, 50);
+  });
+  
+  // 添加轻微的随机摆动效果
+  setTimeout(() => {
+    emojiItems.forEach((item, index) => {
+      const delay = index * 0.1;
+      const randomOffset = (Math.random() - 0.5) * 2;
+      item.style.animation = `emojiFloat 3s ease-in-out ${delay}s infinite`;
+      item.style.setProperty('--random-offset', `${randomOffset}px`);
+    });
+  }, 1000);
 }
 
 /**
@@ -1699,12 +1840,18 @@ function openDiaryModal(dateStr) {
   const chat = state.chats[activeLoversSpaceCharId];
   const diaryEntry = chat.loversSpaceData.emotionDiaries?.[dateStr];
 
-  // 如果双方都有日记，或只有AI有日记，则打开查看器
-  if (diaryEntry && (diaryEntry.userDiary || diaryEntry.charDiary)) {
-    openDiaryViewer(dateStr, diaryEntry, chat);
+  // 如果用户还没有写日记
+  if (!diaryEntry || !diaryEntry.userDiary) {
+    // 如果char已经写了日记，显示查看器并允许用户添加自己的日记
+    if (diaryEntry && diaryEntry.charDiary) {
+      openDiaryViewer(dateStr, diaryEntry, chat, true); // 第三个参数表示允许用户添加日记
+    } else {
+      // 用户和char都没写，打开编辑器
+      openDiaryEditor(dateStr, diaryEntry);
+    }
   } else {
-    // 否则，打开编辑器
-    openDiaryEditor(dateStr, diaryEntry);
+    // 用户已经写了，打开查看器（可以查看双方日记和备注）
+    openDiaryViewer(dateStr, diaryEntry, chat);
   }
 }
 
@@ -1758,8 +1905,9 @@ function openDiaryEditor(dateStr, entryData) {
  * @param {string} dateStr - 日期字符串
  * @param {object} entryData - 日记条目数据
  * @param {object} chat - 聊天对象
+ * @param {boolean} allowUserAddDiary - 是否允许用户添加日记（当char先写时）
  */
-function openDiaryViewer(dateStr, entryData, chat) {
+function openDiaryViewer(dateStr, entryData, chat, allowUserAddDiary = false) {
   const modal = document.getElementById('ls-diary-viewer-modal');
   document.getElementById('ls-diary-viewer-title').textContent = `查看 ${dateStr} 的日记`;
   const bodyEl = document.getElementById('ls-diary-viewer-body');
@@ -1777,6 +1925,41 @@ function openDiaryViewer(dateStr, entryData, chat) {
             <p class="entry-content">${entryData.userDiary.replace(/\n/g, '<br>')}</p>
         `;
     bodyEl.appendChild(userBlock);
+
+    // 显示char对用户日记的备注
+    if (entryData.charAnnotationOnUser) {
+      const annotationBlock = document.createElement('div');
+      annotationBlock.className = 'ls-diary-annotation-block';
+      annotationBlock.innerHTML = `
+            <div class="annotation-header">
+                <span class="annotation-author">${chat.name}的备注</span>
+            </div>
+            <p class="annotation-content">${entryData.charAnnotationOnUser.replace(/\n/g, '<br>')}</p>
+        `;
+      bodyEl.appendChild(annotationBlock);
+    }
+  } else if (allowUserAddDiary) {
+    // 如果用户还没写但允许添加，显示添加按钮
+    const addDiaryBlock = document.createElement('div');
+    addDiaryBlock.className = 'ls-diary-add-block';
+    addDiaryBlock.innerHTML = `
+            <div style="text-align: center; padding: 20px;">
+                <p style="color: var(--text-secondary); margin-bottom: 15px;">你还没有写今天的日记哦~</p>
+                <button class="save" id="ls-add-my-diary-btn" style="width: 100%;">
+                    ✏️ 记录我的心情日记
+                </button>
+            </div>
+        `;
+    bodyEl.appendChild(addDiaryBlock);
+    
+    // 绑定添加日记按钮事件
+    const addDiaryBtn = document.getElementById('ls-add-my-diary-btn');
+    if (addDiaryBtn) {
+      addDiaryBtn.onclick = () => {
+        modal.classList.remove('visible');
+        openDiaryEditor(dateStr, entryData);
+      };
+    }
   }
 
   // 显示角色日记
@@ -1792,6 +1975,79 @@ function openDiaryViewer(dateStr, entryData, chat) {
             <p class="entry-content">${entryData.charDiary.replace(/\n/g, '<br>')}</p>
         `;
     bodyEl.appendChild(charBlock);
+
+    // 显示用户对char日记的备注
+    if (entryData.userAnnotationOnChar) {
+      const annotationBlock = document.createElement('div');
+      annotationBlock.className = 'ls-diary-annotation-block';
+      annotationBlock.innerHTML = `
+            <div class="annotation-header">
+                <span class="annotation-author">${chat.settings.myNickname || '我'}的备注</span>
+            </div>
+            <p class="annotation-content">${entryData.userAnnotationOnChar.replace(/\n/g, '<br>')}</p>
+        `;
+      bodyEl.appendChild(annotationBlock);
+    } else {
+      // 如果用户还没备注，添加备注按钮
+      const annotationButtonBlock = document.createElement('div');
+      annotationButtonBlock.className = 'ls-diary-annotation-button-block';
+      annotationButtonBlock.innerHTML = `
+            <button 
+                class="save" 
+                id="ls-add-annotation-char-btn" 
+                style="width: 100%; margin-top: 10px;"
+            >
+                💬 添加备注
+            </button>
+        `;
+      bodyEl.appendChild(annotationButtonBlock);
+      
+      // 绑定添加备注按钮事件
+      const addAnnotationBtn = document.getElementById('ls-add-annotation-char-btn');
+      if (addAnnotationBtn) {
+        addAnnotationBtn.onclick = () => {
+          // 显示备注输入框
+          const annotationInputBlock = document.createElement('div');
+          annotationInputBlock.className = 'ls-diary-annotation-input-block';
+          annotationInputBlock.id = 'ls-annotation-input-container';
+          annotationInputBlock.innerHTML = `
+                <textarea 
+                    id="ls-annotation-input-char" 
+                    class="annotation-input" 
+                    placeholder="为${chat.name}的日记添加备注..."
+                    rows="3"
+                ></textarea>
+                <div style="display: flex; gap: 10px; margin-top: 10px;">
+                    <button 
+                        class="save" 
+                        id="ls-save-annotation-char-btn" 
+                        style="flex: 1;"
+                    >保存</button>
+                    <button 
+                        class="cancel" 
+                        id="ls-cancel-annotation-char-btn" 
+                        style="flex: 1;"
+                    >取消</button>
+                </div>
+            `;
+          addAnnotationBtn.parentNode.insertBefore(annotationInputBlock, addAnnotationBtn.nextSibling);
+          addAnnotationBtn.style.display = 'none';
+          
+          // 绑定保存和取消按钮事件
+          const saveBtn = document.getElementById('ls-save-annotation-char-btn');
+          const cancelBtn = document.getElementById('ls-cancel-annotation-char-btn');
+          if (saveBtn) {
+            saveBtn.onclick = () => handleSaveAnnotation('char', dateStr);
+          }
+          if (cancelBtn) {
+            cancelBtn.onclick = () => {
+              annotationInputBlock.remove();
+              addAnnotationBtn.style.display = 'block';
+            };
+          }
+        };
+      }
+    }
   } else {
     // 如果角色还没写，给个提示
     bodyEl.innerHTML += `<p style="text-align: center; color: var(--text-secondary);">Ta 还没写今天的心情日记哦~</p>`;
@@ -1956,12 +2212,13 @@ async function handleSaveUserDiary() {
     const emojiDescription = emojiName ? `${userEmoji} (${emojiName})` : userEmoji;
     const hiddenMessage = {
       role: 'system',
-      content: `[系统指令：用户刚刚在情侣空间写了今天的日记。
+      content: `[系统指令：用户刚刚在情侣空间写了${currentDiaryDate}的日记。
             - 他们的心情是: ${emojiDescription}
             - 日记内容是: "${userDiary}"
             你的任务:
             1.  【必须】根据你的人设和今天的聊天记录，也写一篇你自己的心情日记，并使用 'ls_diary_entry' 指令发送。
-            2.  【必须】在写完日记后，立刻就用户今天的日记内容，以你的角色口吻，主动开启一段新的对话。]`,
+            2.  【必须】在写完日记后，对用户的日记添加备注，使用 'ls_diary_annotation' 指令发送备注内容，格式为: {"type": "ls_diary_annotation", "annotation": "你的备注内容", "dateStr": "${currentDiaryDate}"}。
+            3.  【必须】在添加备注后，立刻就用户今天的日记内容和你的备注，以你的角色口吻，主动开启一段新的对话。]`,
       timestamp: Date.now() + 1, // 确保时间戳在后
       isHidden: true, // 这个标记能让消息对用户隐藏，但AI能看见
     };
@@ -1976,6 +2233,102 @@ async function handleSaveUserDiary() {
   }
 
   alert('日记已保存！');
+}
+
+/**
+ * 保存备注
+ * @param {string} targetType - 备注目标类型: 'char' 表示备注char的日记
+ * @param {string} dateStr - 日期字符串
+ */
+async function handleSaveAnnotation(targetType, dateStr) {
+  const annotationInput = document.getElementById(`ls-annotation-input-${targetType}`);
+  if (!annotationInput) return;
+
+  const annotationText = annotationInput.value.trim();
+  if (!annotationText) {
+    alert('备注内容不能为空哦！');
+    return;
+  }
+
+  const chat = state.chats[activeLoversSpaceCharId];
+  if (!chat.loversSpaceData.emotionDiaries) {
+    chat.loversSpaceData.emotionDiaries = {};
+  }
+  if (!chat.loversSpaceData.emotionDiaries[dateStr]) {
+    chat.loversSpaceData.emotionDiaries[dateStr] = {};
+  }
+
+  // 保存备注
+  if (targetType === 'char') {
+    chat.loversSpaceData.emotionDiaries[dateStr].userAnnotationOnChar = annotationText;
+  }
+
+  // 保存到数据库
+  await db.chats.put(chat);
+  state.chats[chat.id] = chat;
+
+  // 发送通知消息
+  const targetChat = state.chats[activeLoversSpaceCharId];
+  if (targetChat) {
+    const notificationMessage = {
+      role: 'user',
+      type: 'ls_diary_notification',
+      content: {
+        userEmoji: '💬',
+        text: `我为你的日记添加了备注：${annotationText.substring(0, 30)}${annotationText.length > 30 ? '...' : ''}`,
+        dateStr: dateStr,
+        annotationType: 'user_on_char'
+      },
+      timestamp: Date.now(),
+    };
+    targetChat.history.push(notificationMessage);
+
+    // 创建隐藏指令，让AI回复
+    const hiddenMessage = {
+      role: 'system',
+      content: `[系统指令：用户刚刚为你在${dateStr}写的日记添加了备注。
+            - 备注内容是: "${annotationText}"
+            - 你的任务: 【必须】以你的角色口吻，对用户的备注做出回应，表达你的感受和想法。]`,
+      timestamp: Date.now() + 1,
+      isHidden: true,
+    };
+    targetChat.history.push(hiddenMessage);
+
+    // 保存所有更改到数据库
+    await db.chats.put(targetChat);
+
+    // 主动跳转到单聊界面，并触发AI响应
+    openChat(activeLoversSpaceCharId);
+    triggerAiResponse();
+  }
+
+  // 移除输入框并隐藏按钮（如果存在）
+  const inputContainer = document.getElementById('ls-annotation-input-container');
+  if (inputContainer) {
+    inputContainer.remove();
+  }
+  const addBtn = document.getElementById('ls-add-annotation-char-btn');
+  if (addBtn) {
+    addBtn.style.display = 'none';
+  }
+  
+  // 刷新显示以显示备注
+  const bodyEl = document.getElementById('ls-diary-viewer-body');
+  const charBlock = bodyEl.querySelector('.ls-diary-entry-block[style*="border-color: #ff8fab"]');
+  if (charBlock) {
+    // 在char日记块后添加备注显示
+    const annotationBlock = document.createElement('div');
+    annotationBlock.className = 'ls-diary-annotation-block';
+    annotationBlock.innerHTML = `
+          <div class="annotation-header">
+              <span class="annotation-author">${chat.settings.myNickname || '我'}的备注</span>
+          </div>
+          <p class="annotation-content">${annotationText.replace(/\n/g, '<br>')}</p>
+      `;
+    charBlock.parentNode.insertBefore(annotationBlock, charBlock.nextSibling);
+  }
+  
+  alert('备注已保存！');
 }
 
 /**
