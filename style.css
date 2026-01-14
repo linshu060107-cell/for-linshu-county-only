@@ -799,12 +799,14 @@ body {
   border-radius: 20px;
   background-color: var(--secondary-bg);
   font-size: 16px;
-  max-height: 100px;
-  resize: none;
-  min-height: 40px; /* 设置最小高度，防止初始状态和输入第一个字符时高度不一致 */
-  height: 40px; /* 设置初始高度，确保空状态时高度固定 */
-  box-sizing: border-box; /* 确保 padding 被包含在高度计算中 */
+
+  /* ▼▼▼ 核心修改：固定高度 ▼▼▼ */
+  height: 40px;           /* 这里填你喜欢的固定高度，比如 40px */
+  box-sizing: border-box; /* 保证 padding 不会额外撑大这 40px */
+  overflow-y: auto;       /* 超过一行时，允许上下滚动 */
+  resize: none;           /* 禁止用户手动拖动右下角缩放 */
 }
+
 .action-button {
   border: none;
   color: white;

@@ -29188,7 +29188,19 @@ ${chat.settings.aiPersona}
 
 			/* 5. 适配所有通用组件 */
 			#chat-input-area, #chat-list-bottom-nav { background-color: rgba(28, 28, 30, 0.85); border-top-color: var(--border-color); }
-			#chat-input { background-color: var(--secondary-bg); color: var(--text-primary); }
+			/* 找到对应的这一行，添加高度限制 */
+#chat-input { 
+    background-color: var(--secondary-bg); 
+    color: var(--text-primary); 
+
+    /* ▼▼▼ 下面是新增的代码 ▼▼▼ */
+    height: 40px !important;    /* 强制固定高度为40像素 */
+    max-height: 40px !important;/* 再次加固，不准超过40像素 */
+    overflow-y: auto !important;/* 如果文字多了，允许在框内上下滚动 */
+    box-sizing: border-box;     /* 保证边距不撑大高度 */
+    resize: none;               /* 禁用手动拉伸 */
+}
+
 			.modal-content, #custom-modal { background-color: #2c2c2e; }
 			.modal-header, .modal-footer, .custom-modal-footer, .custom-modal-footer button:first-child { border-color: var(--border-color); }
 			.form-group input, .form-group select, .form-group textarea { background-color: var(--secondary-bg); color: var(--text-primary); border-color: var(--border-color); }
